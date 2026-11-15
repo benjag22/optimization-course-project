@@ -28,6 +28,7 @@ class MILPGurobi:
         self.t = m.addVars(d.T, lb=0, ub=1, name="t")
         self.s = m.addVars(d.X, lb=0, ub=1, name="s")
         self.r = m.addVars(d.K, lb=0, ub=1, name="r")
+        self.z = m.addVars(d.Z, vtype=GRB.BINARY, name="z") if d.Z else None
 
     def _x(self, u: int, k: int) -> gp.LinExpr:
         var = self.x.get((u, k))
@@ -74,13 +75,17 @@ class MILPGurobi:
         m.addConstrs((s[u, k] <= x[u, k] for u, k in d.X), name="c40")
         m.addConstrs((s[u, k] >= r[k] + x[u, k] - 1 for u, k in d.X), name="c41")
 
-    # mejoras de las seccion 4):
+    # mejoras de las seccion 4) y extensiones (capacidad / K-SCP):
     def _improvements(self) -> None:
         d, m, x = self.data, self.model, self.x
         nb = d.instance.neighbors()
 
-        # (51):
+        # (51) o (52) según corresponda:
         m.addConstrs((x[u, k] <= x[k, k] for u, k in d.symmetry_51), name="c51")
+        m.addConstrs(
+            (x[j, k] <= gp.quicksum(x[i, k - 1] for i in range(k - 1, j)) for j, k in d.symmetry_52),
+            name="c52",
+        )
 
         # (48):
         m.addConstrs(
@@ -91,11 +96,45 @@ class MILPGurobi:
 
         # (47):
         m.addConstrs(
-            (1 - self._x(u, w) - self._x(u, w2)
-             + gp.quicksum(self._x(v, w) + self._x(v, w2) for v in nb[u]) <= len(nb[u])
-             for u, w, w2 in d.cuts_47),
+            (
+                1 - self._x(u, w) - self._x(u, w2)
+                + gp.quicksum(self._x(v, w) + self._x(v, w2) for v in nb[u])
+                <= len(nb[u])
+                for u, w, w2 in d.cuts_47
+            ),
             name="c47",
         )
+
+        # (57) forzar exactamente MAX_K clusters activos
+        if d.options.exact_K and d.options.MAX_K is not None:
+            m.addConstrs((x.sum("*", k) >= 1 for k in d.K), name="c57_exact_k")
+
+        # SCP capacitado L * z_k <= tamaño(k) <= U * z_k
+        if self.z is not None:
+            self._add_min_and_max_clusters(d.options.min_size, d.options.max_size)
+
+    def _add_min_and_max_clusters(self, min_size: int | None, max_size: int | None) -> None:
+        d, m, x, z = self.data, self.model, self.x, self.z
+        assert z is not None
+
+        for k in d.K:
+            cluster_size = gp.quicksum(
+                d.node_weights[u] * x[u, k] for u in range(d.instance.n) if (u, k) in x
+            )
+            if min_size is not None:
+                m.addConstr(cluster_size >= min_size * z[k], name=f"cap_min[{k}]")
+            else:
+                # si no hay cota minima, impedir que z_k = 1
+                m.addConstr(z[k] <= x.sum("*", k), name=f"z_active[{k}]")
+
+            if max_size is not None:
+                m.addConstr(cluster_size <= max_size * z[k], name=f"cap_max[{k}]")
+            else:
+                # si no hay cota max, forzar z_k = 1
+                m.addConstrs(
+                    (z[k] >= x[u, k] for u in range(d.instance.n) if (u, k) in x),
+                    name=f"z_link[{k}]",
+                )
 
     # solucion
     def assignation(self) -> list[int]:
