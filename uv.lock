@@ -1,0 +1,29 @@
+version = 1
+revision = 5
+requires-python = ">=3.15"
+
+[[package]]
+name = "gurobipy"
+version = "14.0.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ac/7e/a141285e4bb8a42f57712d7eb0a331a5ecef09a78605ec0d3d0a1ff6cca5/gurobipy-14.0.0-cp315-cp315-macosx_10_15_universal2.whl", hash = "sha256:970ba1c78f89a7addb600a54d8c9d4f0adda0ac333b16f6f069474418c023052", size = 16671716, upload-time = "2026-11-10T13:05:50.606Z" },
+    { url = "https://files.pythonhosted.org/packages/9b/14/87e43dcc57fa891b73be99d65c994e1fa8a6ad6388909a1b6c7d1d963f6f/gurobipy-14.0.0-cp315-cp315-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:3330d2b7bd67f0e82c3d0c9c076fe6471765e3b89b32016185b8d53a24a11237", size = 14184265, upload-time = "2026-11-10T13:05:52.933Z" },
+    { url = "https://files.pythonhosted.org/packages/aa/5d/47836ed3113d3a113cd3255214d58f2e5d731f066f72dafbe79294804778/gurobipy-14.0.0-cp315-cp315-manylinux_2_26_aarch64.whl", hash = "sha256:f62f95ed305d8c3819ff4a199e76ffca9da13dc66b0463ad2dc5fb6fc17bc712", size = 28115028, upload-time = "2026-11-10T13:05:56.187Z" },
+    { url = "https://files.pythonhosted.org/packages/20/42/4b70909e012647de322650b08a9c498a58b7fc3831f0deea28396d1d2cb6/gurobipy-14.0.0-cp315-cp315-win_amd64.whl", hash = "sha256:a9d025766f7a82233ee515d87521e5ed77a2e7831df2d592219235f7872c55f0", size = 10631805, upload-time = "2026-11-10T13:06:08.745Z" },
+    { url = "https://files.pythonhosted.org/packages/fc/6f/e4dc24827877bd86091f30fde9f549bc61db19d4db615bce3fc9c3b1196d/gurobipy-14.0.0-cp315-cp315t-macosx_10_15_universal2.whl", hash = "sha256:77d6ef09c128f02e12dd2116b2fbc2ec9fb1fd5ccda70d2050e990b28861c9ab", size = 16980984, upload-time = "2026-11-10T13:05:59.062Z" },
+    { url = "https://files.pythonhosted.org/packages/1a/71/724df414487dbdaa9b91548a578180669a7c040839efd5782f925940fe6f/gurobipy-14.0.0-cp315-cp315t-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:925d982ce3f033423f15b0a666e76219a6248e8f6be425161e6c8a36f7fdd1c3", size = 14162565, upload-time = "2026-11-10T13:06:01.361Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/ae/2f87230180da48897d2217f48303a976d5b76e0e7f63a3c5718b0f727420/gurobipy-14.0.0-cp315-cp315t-manylinux_2_26_aarch64.whl", hash = "sha256:36f0af444d46db8c1fbff9c4ad18a60bf5d5ea093b5b8cd0742bc56f485e5a13", size = 28105364, upload-time = "2026-11-10T13:06:03.986Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/9f/aa4139dd09381a267e669f5d726ceab05ec99463010168a10f0036a62ca9/gurobipy-14.0.0-cp315-cp315t-win_amd64.whl", hash = "sha256:ed41b63257db36e27a9750e6f9fbe0b293a203fc477f60e66d15e729fe9a11cb", size = 10822477, upload-time = "2026-11-10T13:06:06.289Z" },
+]
+
+[[package]]
+name = "optimization-course-project"
+version = "1.0.0"
+source = { editable = "." }
+dependencies = [
+    { name = "gurobipy" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "gurobipy", specifier = ">=14.0.0" }]
