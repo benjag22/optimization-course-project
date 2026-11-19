@@ -270,6 +270,12 @@ def append(path: Path, row: dict[str, object]) -> None:
         w.writerow(row)
 
 
+def fmt(seg: float) -> str:
+    h, r = divmod(int(seg), 3600)
+    m, s = divmod(r, 60)
+    return f"{h}h{m:02d}m{s:02d}s"
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--experimento", type=int, nargs="+", choices=range(5), required=True)
@@ -286,6 +292,7 @@ def main(argv: list[str] | None = None) -> None:
     solvers = ["gurobi", "cplex"] if args.solver == "ambos" else [args.solver]
     done = done_keys(out_path) if args.reanudar else set()
 
+    pending: list[tuple[int, Run, Path, str]] = []
     for exp in args.experimento:
         for run in plan(exp):
             if args.instancias and run.nombre not in args.instancias:
@@ -294,17 +301,25 @@ def main(argv: list[str] | None = None) -> None:
             if not path.exists():
                 print(f"OMITIDA {run.nombre}: no existe {path}", file=sys.stderr)
                 continue
-            inst = Instance.from_file(path)
             for solver in solvers:
                 if (str(exp), run.nombre, run.config, solver) in done:
                     continue
-                row = execute(run, inst, solver, args.hilos, args.limite)
-                append(out_path, row)
-                print(
-                    f"exp{exp} {run.nombre} {run.config} {solver} {row['estado']} "
-                    f"obj={row['best_obj']} gap%={row['mip_gap_pct']} t={row['tiempo_seg']}s",
-                    flush=True,
-                )
+                pending.append((exp, run, path, solver))
+
+    total = len(pending)
+    t_start = time.perf_counter()
+    for i, (exp, run, path, solver) in enumerate(pending, 1):
+        inst = Instance.from_file(path)
+        row = execute(run, inst, solver, args.hilos, args.limite)
+        append(out_path, row)
+        left = total - i
+        avg = (time.perf_counter() - t_start) / i
+        print(
+            f"[{i}/{total}] exp{exp} {run.nombre} {run.config} {solver} {row['estado']} "
+            f"obj={row['best_obj']} gap%={row['mip_gap_pct']} t={row['tiempo_seg']}s "
+            f"| ETA~{fmt(avg * left)} max {fmt(left * args.limite)}",
+            flush=True,
+        )
 
 
 if __name__ == "__main__":
