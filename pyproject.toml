@@ -1,12 +1,13 @@
 [project]
 name = "optimization-course-project"
 version = "1.0.0"
-description = "Add your description here"
+description = "Software Clustering Problem: MILP formulations solved with Gurobi and CPLEX"
 readme = "README.md"
 authors = []
-requires-python = ">=3.15"
+requires-python = ">=3.14"
 dependencies = [
     "gurobipy>=14.0.0",
+    "docplex>=2.32.264",
 ]
 
 [build-system]
